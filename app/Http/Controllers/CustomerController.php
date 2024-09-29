@@ -16,9 +16,6 @@ class CustomerController extends Controller
         return view('form', $data);
     }
     function store(Request $request){
-        // echo"<pre>";
-        // print_r($request->all());
-
         $customer = new Customers();//new object(customer) bana rhe hai
         $customer ->name = $request['name'];
         $customer ->email = $request['email'];
@@ -41,7 +38,12 @@ class CustomerController extends Controller
         $data = compact('customer');
         return view('customer-view')->with($data);
     }
-
+    function trash(){
+        $customer = Customers::withTrashed()->get();
+        $data = compact('customer');
+        return view('customer-trash')->with($data);
+        
+        }
     function delete($id){
         $customer = Customers::find($id);
         if(!is_null($customer)){
@@ -52,7 +54,26 @@ class CustomerController extends Controller
         // echo"<pre>";
         // print_r($customer->toArray());
     }
-
+    function restore($id){
+        $customer = Customers::withTrashed()->find($id);
+        if(!is_null($customer)){
+            $customer->restore();
+        }
+        // run time error se bachayega
+        return redirect('customer/view');
+        // echo"<pre>";
+        // print_r($customer->toArray());
+    }
+    function Forcedelete($id){
+        $customer = Customers::withTrashed()->find($id);
+        if(!is_null($customer)){
+            $customer->forceDelete();
+        }
+        // run time error se bachayega
+        return redirect()->back();
+        // echo"<pre>";
+        // print_r($customer->toArray());
+    }
     function edit($id){
         $customer = Customers::find($id);
         if(is_null($customer)){
@@ -76,5 +97,17 @@ class CustomerController extends Controller
         $customer ->dob = $request['dob'];
         $customer->save();
         return redirect('/customer/view');
+    }
+    function upload(Request $req){
+    //    $filenam = time().".".$req->file('file')->getClientOriginalExtension();
+    $file = $req->file('file');
+    $filename = time() . '.' . $file->getClientOriginalExtension();   
+    $path = $file->storeAs('upload-public', $filename, 'public');
+    echo $path;
+    
+    // Return a success response or view
+    // return view('image')->with('path', $path);
+    return view('image');
+        
     }
 } 

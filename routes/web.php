@@ -6,6 +6,7 @@ use App\Http\Controllers\ResourceController;
 use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\CustomerController;
 use App\Models\Customers;
+use Illuminate\http\Request;
 //controller add kia hai
 
 //Route ek class hai or get uska method
@@ -62,11 +63,23 @@ Route::get('/register',[RegistrationController::class,'index']);
 Route::post('/register',[RegistrationController::class,'register']);
 Route::get('/customer',[CustomerController::class,'index'])->name('customer.create');
 Route::post('/customer',[CustomerController::class,'store']);
-Route::get("/customer/view",[CustomerController::class,'view']);
+Route::get("/customer/view",[CustomerController::class,'view'])->name('customer.view'); 
+Route::get("/customer/trash",[CustomerController::class,'trash'])->name('customer.trash'); 
+Route::get('/customer/force-delete/{id}',[CustomerController::class,'Forcedelete'])->name('customer.delte.force');
 
 Route::get('/customer/delete/{id}',[CustomerController::class,'delete'])->name('customer.delte');
+Route::get('/customer/restore/{id}',[CustomerController::class,'restore'])->name('customer.restore'); 
 Route::get('/customer/edit/{id}',[CustomerController::class,'edit'])->name('customer.edit');
 Route::post('/customer/update/{id}',[CustomerController::class,'update'])->name('customer.update');
+Route::get('/upload',function (){
+    return view('upload');
+});
+Route::post('/upload',[CustomerController::class,'upload']);
+
 Route::get('/',function(){
     return view("nav");
 });
+
+
+
+

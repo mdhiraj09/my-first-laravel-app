@@ -62,9 +62,9 @@ if agr header same hai toh har ek ko alg title dega
 =========================================================================================
 What is controller 
 controller are class based php files;
-controlller can group related request handling logic intp single class 
+controlller can group related request handling logic into single class 
 like user k liye request ko ek jgh rkhna hai toh contrleere ka kaam hota hai
-controller view or model k beech kaam krta hai db to view model means logic
+controller view or model k beech kaam krta hai db to view,model means logic
 
 -----------
 types of controller 
@@ -105,6 +105,44 @@ php artisan make:migration create_table_name_table
 sirf table_name change kar sakte hai
 database>migration
 yaha .php ki class file aayegi yaha table ka blueprint decide kar sakte hai
+------------------------
+up me create hota hai 
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('customers', function (Blueprint $table) {
+            $table->id('custome_id'); //customer_id custome name
+            $table->string('name',60);
+            $table->string('email',100);
+            $table->enum('gender',["m","f","O"]);
+            $table->text('address');
+            $table->date('dob')->nullable();
+            $table->string('password');//default klimit 255 hai
+            $table->boolean('status')->default(1);
+            $table->integer('points')->default(0);
+            $table->timestamps(); //created at
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('customers');
+    }
+};
+-------------------------
 
 migrate ko db me kese pahuchane k liye
 php artisan migrate
@@ -117,7 +155,13 @@ php artisan migrate:refresh
 //------------------------------------------------------
 new column add karne k liye
 php artisan make:migration add_colums_to_table_name_table
-$table->string('country')->nullable()->after('address'); kiske k baad add krna hai up or down krke do function hai
+
+    public function up(): void
+    {
+        Schema::table('customers', function (Blueprint $table) {
+            $table->string('country')->nullable()->after('address');kiske k baad add krna hai up or down krke do function hai
+        });
+    }
 
 ================================================================================
 
@@ -138,6 +182,13 @@ php artisan make:model <model name> --migration
 
 databse data save krne k liye post ka ek route create krn ahi fir uske controller me model add krna hai ek jisme primarykey or 
 table ka naam hai fir controller me use model ka ek object bana hai fir data decunstruct krke usme set krna hai 
+                                      -----------
+                                                |
+use Illuminate\Http\Request;                    |--------->upper aayega
+use App\Models\Customers;//neccessory           |
+                                      -----------
+
+
  function store(Request $request){
         echo"<pre>";
         print_r($request->all());
@@ -170,7 +221,19 @@ class Customers extends Model
 -------------------------aese----------------
 
 fir function ko route me call krna hai jaha post methode hai store function ka naam
+aese
+Route::get('/register',[RegistrationController::class,'index']);
+Route::post('/register',[RegistrationController::class,'register']);
+Route::get('/customer',[CustomerController::class,'index'])->name('customer.create');
+Route::post('/customer',[CustomerController::class,'store']);
+Route::get("/customer/view",[CustomerController::class,'view']);
 
+Route::get('/customer/delete/{id}',[CustomerController::class,'delete'])->name('customer.delte');
+Route::get('/customer/edit/{id}',[CustomerController::class,'edit'])->name('customer.edit');
+Route::post('/customer/update/{id}',[CustomerController::class,'update'])->name('customer.update');
+Route::get('/',function(){
+    return view("nav");
+});
 
 ----------------------------------------select query to diplay on table using model
 get ka ek view page banyenge web.php me
@@ -183,8 +246,9 @@ function view(){
         return view('customer-view')->with($data); 
         //view pe jaate time isko lke jaa
     }
+    ye trash data deleted data show nhi krta softDelete avala
     .....................................................................
-customer.blade.view
+customer.blade.view------------>
 @foreach ($customer as $item)
                                 
                             
@@ -227,15 +291,125 @@ find methode modle me primary key ko find karega app>model upper hai
 
 -----------------------------------------------------------------
 update query
+function edit($id){
+        $customer = Customers::find($id);
+        if(is_null($customer)){
+           return redirect('customer/view');
+        }
+        else{
+            $url = url('/customer/update')."/".$id;
+            $title = 'Update Customer';
+            $data = compact('customer','url','title');
+            return view('form',$data);
+        }
+}
+    function update($id,Request $request){
+        $customer = Customers::find($id);//store vaale me new object bana rhe the isme find kr rhe hai
+        $customer ->name = $request['name'];
+        $customer ->email = $request['email'];
+        $customer ->address = $request['address'];
+        $customer ->country = $request['country'];
+        $customer ->dob = $request['dob'];
+        $customer->save();
+        return redirect('/customer/view');
+    }
+
+===============================================
+configure of customer helper in laravel
+code ko likhte jo baar baaar repeat hota hai
+app>helper.php bnana hai
+har page pe load hota hai
+composer.json me changes krna hai
+autoload me add krna file ka location 
+------------------>
+ "autoload": {
+        "files" : ["app/helper.php"],
+        "psr-4": {
+            "App\\": "app/",
+            "Database\\Factories\\": "database/factories/",
+            "Database\\Seeders\\": "database/seeders/"
+        }
+    }
+----------
+fir cmd pr 
+composer dump-autoload
+=====================================================
+accessor and mutetor in laravel
+A mutator transforms an eloquent attribute value when it is set.
+define a set{Attribute}Attribute method on your Model where {Attribute} is the studly cased name of the column you wish to access
+database me jane vaale data ko modifie krta hai.
+use cheez k liye ek function banana padta hai set{Nmae}Attribute aese 
+
+accessor 
+get krte time modify krna hai toh accessor krta hai
+Model ke php file me 
+
+  // ek muttrater hai 
+    public function setNameAttribute($value){
+        $this->attributes['name'] = ucwords($value);
+    }
+    //accessor
+    public function getDobAttribute($value){
+        return date("d-M-Y",strtotime($value));
+    }
+customer class me
+
+============================================== Session handling in laravel===================================
+ session helpper laravel khud deta hai
+
+ retriving data from session
+ $request->session()->get('key');
+ session('key'); bina arequest ke 
+ key ka naam 
+ ------------------------------------
+retreving all session data
+ $request->session()->all();
+ session()->all();
+ -----------------------------------
+ determine if koi perticular key session me hia ki nhi
+  $request->session()->has('key');
+ session()->key('key');
+------------------------------------
+storing data in helper
+ $request->session()->put('key','value');
+ session(['key'=>'value']);
+ -----------------------------------
+ flash data temp data
+ $request->session()->flash('status',"task was susseful");
+ -----------------------------------
+ deleting data
+  $request->session()->forget('key');
+  $request->session()->forget(['key','key2']);
+  $request->session()->flush();
+
+======================================================
+soft delete krne pr normal select query se fetch nhi hota 
+
+Nmespace use krna hai use Illuminate\Database\Eloquent\softDeletes
+phle isko add krna hai
+
+invoking:use SoftDeletes;
+upper ke dono komodel vaale file me krna hai
 
 
+create softDelete column : $table->softDeletes();
 
 
+withTrashed()
+onlyTrashed()
 
+restore()
 
+forceDelete()
 
+=========================================================================================
+file upload 
+function upload(Request $req){
 
-
+        echo $req->file('file')->store('uploads');
+        
+    }
+storage>app>private>uploads yaha aayega
 
 
 

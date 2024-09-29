@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
     <head>
-        <title>Title</title>
+        <title>Customer trashed</title>
         <!-- Required meta tags -->
         <meta charset="utf-8" />
         <meta
@@ -64,7 +64,9 @@
                 <a href="{{route('customer.create')}}">
                 <button class="btn btn-warning  ">Add</button>
             </a>
-            <a href="{{route('customer.trash')}}"> <button class="btn btn-primary">View trash</button></td></a>
+            <a href="{{url('/customer/view')}}">
+                <button class="btn btn-warning  ">View customer</button>
+            </a>
                 <div
                     class="table-responsive"
                 >
@@ -84,16 +86,14 @@
                         </thead>
                         <tbody>
                             @foreach ($customer as $item)
-                                
-                            
-                            <tr class="">
+                                <tr class="">
                                 <td >{{$item->name}}</td>
                                 <td>{{$item->email}}</td>
                                 <td>{{$item->address}}</td>
                                 <td>{{$item->country}}</td>
                                 <td>{{$item->dob}}</td>
-                                <td><a href="{{route('customer.delte',['id' =>$item->custome_id ])}}"><button class="btn btn-danger">Trash</button></a>
-                               <a href="{{route('customer.edit',['id'=>$item->custome_id])}}"> <button class="btn btn-primary">Edit</button></td></a>
+                                <td><a href="{{route('customer.delte.force',['id' =>$item->custome_id ])}}"><button class="btn btn-danger">Delete</button></a>
+                               <a href="{{route('customer.restore',['id'=>$item->custome_id])}}"> <button class="btn btn-primary">Restore</button></td></a>
                             </tr>
                             @endforeach
                         </tbody>
