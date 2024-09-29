@@ -1,0 +1,251 @@
+blade ek template engine hai view vaale part ko 
+structure provide kata hai sab core php ka eplacement hai if else loop sab
+.php krke jgh file banate hai ab .blade.php extension banate hai 
+
+data display karana ho toh {{$name variable}}->simple print html decode nhi karta hai
+  aur {!!$name var!!}html decode karta hai 
+{{$name_variable}} isme agr value nhi aa rha toh default value bi rakh sakte hai {{$name_variable = "guest"}}
+
+isme function bhi kar sakte hai{{function_call()}}
+
+Directives
+@if,@elseif,@else and @endif
+            @if($name!= '')
+                {{"name is not empty"}}
+            @else 
+            {{"name is empty"}}
+            @endif
+@unless(Condition) agr codition true toh run karana
+@isset($variabe) agr set toh aage jane dega 
+
+@for or @endfor
+   @for ($i = 0; $i < 10 ; $i++)
+                    <h2>{{$i}}</h2>
+                @endfor
+
+
+ @php @endphp <?php> ka repplacement
+
+ @foreach @endforeach
+  <select name="" id="">
+                 @foreach ($countries as $key=> $country) 
+                  <option value="{{$key}}">{{$country}}</option>
+                 
+                 @endforeach
+                </select>
+// keys index number hai
+
+@break and @continue 
+@errors adn @enderror naam ki driective use karke server side error jovalidation pe hai usko print kar sakte hai
+if else ki trh kaaam kta hai
+value="{{old('name')}}" jab laravel validation k time koi error through krta hai old data isme rkhta hai usko from input m value ki jgh rakh ke vlaue show kr sakte ha iold value
+
+for comments {{--comments--}}
+
+@include ksis or page ko include karane ka kaam krta hai
+------------------------------------------------------------------------------------------------------
+layout blade directories
+@includes -->header footer include karega
+@yield is used to display the contents of a given section -> kisis main page pe kahi se aaye contain ko push karega @yield('main-section')  as a container jagh bana liya hai
+@section('main-section) @endsection -> section of a content hom.blade.php kaha jana hai us container ka naam
+
+home.blade ye bahr hai layouts ke
+@extends('layouts.main') layouts folder ka naam hai view ke andr vaha sa b file hai inhertits home.blade.php jese ye hai agr iska koi comoponete kahi bhejna hai jese main me toh extends karte hai kisi page ko batyega ki kaha jana hai
+
+if agr header same hai toh har ek ko alg title dega 
+@stack('title')
+
+
+
+
+
+=========================================================================================
+What is controller 
+controller are class based php files;
+controlller can group related request handling logic intp single class 
+like user k liye request ko ek jgh rkhna hai toh contrleere ka kaam hota hai
+controller view or model k beech kaam krta hai db to view model means logic
+
+-----------
+types of controller 
+basic controller- just class milega use ke hisab se customize hofga
+single action controller- single request handle karne k kaam aata hai(isme ek hi function hota hai)
+resource controller- CRUD operation kliye hai predfined rhta h logic dalna hai 50% done rhta hai
+controller app>Http>Controllers me banta hai 
+controller banae ka command basic controller
+php artisan make:controller ControllerName 
+single action controller
+php artisan make:controller ControllerName --invokable
+resource controller
+php artisan make:countroller ControllerName --resource
+
+===========================================================================
+comoponent in laravel
+cmd:
+php artisan make:componenet NAme
+app>view isme banta hai NAme.php ki class based file banti hai
+resource>views>componenet naam ka folder banta hai NAme.blade.php
+component ko centralised rkhta hai
+ <x-input/> user defined tag banate hai kuch bhi value bhej sakte hai phle usko app>view>/php class file me contrutor bana ke intialize karna padega
+
+ ============================================================================
+
+ databse configuration 
+
+ migration ek feature hai laravel ka bina database me gaye table create kar sakte delete kar sakte hai
+ database >migrartion
+.env me kuch change ke baad ye karne ka
+ php artisan config:Cache
+
+ db file run create hoga
+ php artisan migrate
+ /--------------------------------------------------------------------
+ creating tabes using migration
+php artisan make:migration create_table_name_table
+sirf table_name change kar sakte hai
+database>migration
+yaha .php ki class file aayegi yaha table ka blueprint decide kar sakte hai
+
+migrate ko db me kese pahuchane k liye
+php artisan migrate
+last ko vaps e lena
+php artisan migrate:rollback
+table delet kar dega if agr kch mistake hai toh
+
+sab delete karke fresh jaayega
+php artisan migrate:refresh
+//------------------------------------------------------
+new column add karne k liye
+php artisan make:migration add_colums_to_table_name_table
+$table->string('country')->nullable()->after('address'); kiske k baad add krna hai up or down krke do function hai
+
+================================================================================
+
+introduction to model
+model is class based php
+laravel includes eloquent an Object-relational-mappper ORM that makes it enjoyable to intract with your database
+each databese table has coreespondning model
+command
+php artisan make:model <ModelName>
+Model ka naam capital 
+app>models 
+model ko map karna padega
+
+model create karte time migration bhi cahiye toh
+php artisan make:model <model name> --migration
+
+--------------------------------------------------------------------------------------
+
+databse data save krne k liye post ka ek route create krn ahi fir uske controller me model add krna hai ek jisme primarykey or 
+table ka naam hai fir controller me use model ka ek object bana hai fir data decunstruct krke usme set krna hai 
+ function store(Request $request){
+        echo"<pre>";
+        print_r($request->all());
+
+        $customer = new Customers();
+        $customer ->name = $request['name'];
+        $customer ->email = $request['email'];
+        $customer ->address = $request['address'];
+        $customer ->country = $request['country'];
+        $customer ->DOB = $request['dob'];
+        $customer ->password = md5($request['password']);
+        $customer->save();
+ }
+ ......................................MOdel.................................app>model
+ <?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Customers extends Model
+{
+    use HasFactory;
+    //--------------------
+    protected $table = "customers";
+    protected $primaryKey ="customer_id";
+}
+
+-------------------------aese----------------
+
+fir function ko route me call krna hai jaha post methode hai store function ka naam
+
+
+----------------------------------------select query to diplay on table using model
+get ka ek view page banyenge web.php me
+compact() array banane ka kaam krta hai
+function view(){
+        $customer =Customers::all();//data fetch karega
+       
+        // die; //ye lagane page iske aage nhi jaayega
+        $data = compact('customer');
+        return view('customer-view')->with($data); 
+        //view pe jaate time isko lke jaa
+    }
+    .....................................................................
+customer.blade.view
+@foreach ($customer as $item)
+                                
+                            
+                            <tr class="">
+                                <td >{{$item->name}}</td>
+                                <td>{{$item->email}}</td>
+                                <td>{{$item->address}}</td>
+                                <td>{{$item->country}}</td>
+                                <td>{{$item->dob}}</td>
+                            </tr>
+                            @endforeach
+  =================================================================================
+  Routing baseed on button and anchor
+  route() & url() 
+  href me url de sakte hai 1st way
+    <a class="nav-link" href="{{url('/customer')}}">Register</a>
+  2nd way named route
+  Route::get('/customer',[CustomerController::class,'index'])->name('customer.create');
+  name us kr skte hai
+                  <a href="{{route('.customer.create')}}">
+                <button class="btn btn-primary d-inline-block float-right">Add</button>
+            </a>
+-------------------------------------------------------------------------------
+
+sendingg query parameter using route method for delete
+  <td><a href="{{url('customer/delete/')}}/{{{$item->custome_id}}}"><button class="btn btn-danger">Delete</button></a>
+  aese aayega fir controlller ma function jo call kia hai 
+
+  2nd way
+  <td><a href="{{route('customer.delte',['id' =>$item->custome_id ])}}"><button class="btn btn-danger">Delete</button></a>
+  array pass kiya hai jisme key or value pass kia hai
+/----------route me -------------
+Route::get('/customer/delete/{id}',[CustomerController::class,'delete'])->name('customer.delte');
+------------------------------ controller ka function-----------
+function delete($id){
+                $customer = Customers::find($id)->delete();
+        return redirect()->back();// back function jaha se request aaya hai vaha bhej dega par ye error bhi de skta hai
+    }
+find methode modle me primary key ko find karega app>model upper hai 
+
+-----------------------------------------------------------------
+update query
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+////////////////most Important agr web ko localhost pe run krna hai toh/////////////////////////
+.env me jaake
+APP_URL=http://192.168.189.59:8000
+ip yaha likhne ka machine ka
+APP_URL=http://localhost
+or ye degfault hai
+or terminalme ye 
+php artisan serve --host=0.0.0.0 --port=8000
